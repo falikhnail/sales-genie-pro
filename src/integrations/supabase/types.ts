@@ -258,6 +258,7 @@ export type Database = {
           created_at: string
           custom_price: number
           id: string
+          is_active: boolean
           product_id: string
           store_id: string
           updated_at: string
@@ -266,6 +267,7 @@ export type Database = {
           created_at?: string
           custom_price: number
           id?: string
+          is_active?: boolean
           product_id: string
           store_id: string
           updated_at?: string
@@ -274,6 +276,7 @@ export type Database = {
           created_at?: string
           custom_price?: number
           id?: string
+          is_active?: boolean
           product_id?: string
           store_id?: string
           updated_at?: string

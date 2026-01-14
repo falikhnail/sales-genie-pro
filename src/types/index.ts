@@ -28,6 +28,7 @@ export interface StorePrice {
   store_id: string;
   product_id: string;
   custom_price: number;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 }

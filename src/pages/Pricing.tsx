@@ -1,7 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useStores } from '@/hooks/useStores';
 import { useActiveProducts } from '@/hooks/useProducts';
-import { useStorePrices, useUpsertStorePrice, useDeleteStorePrice } from '@/hooks/useStorePrices';
+import { useActiveStorePrices, useUpsertStorePrice, useDeleteStorePrice } from '@/hooks/useStorePrices';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,7 +23,7 @@ const Pricing = () => {
   const { data: stores, isLoading: storesLoading } = useStores();
   const { data: products, isLoading: productsLoading } = useActiveProducts();
   const [selectedStoreId, setSelectedStoreId] = useState<string>('');
-  const { data: storePrices, isLoading: pricesLoading } = useStorePrices(selectedStoreId);
+  const { data: storePrices, isLoading: pricesLoading } = useActiveStorePrices(selectedStoreId);
   const upsertPrice = useUpsertStorePrice();
   const deletePrice = useDeleteStorePrice();
 

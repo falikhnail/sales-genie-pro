@@ -4,10 +4,10 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useStores } from '@/hooks/useStores';
 import { useActiveProducts } from '@/hooks/useProducts';
-import { useStorePrices } from '@/hooks/useStorePrices';
+import { useActiveStorePrices, useProductCustomPrices } from '@/hooks/useStorePrices';
 import { useCreateOrder, useUpdateOrderWhatsappStatus } from '@/hooks/useOrders';
 import { useActivityLog } from '@/hooks/useActivityLog';
-import { CartItem, Store, Product } from '@/types';
+import { CartItem, Store, Product, StorePrice } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -21,7 +21,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ShoppingCart, Plus, Minus, Trash2, Send, MessageCircle, Copy } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, Trash2, Send, MessageCircle, Copy, Tag } from 'lucide-react';
 import { formatCurrency, formatPhone } from '@/lib/formatters';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -38,7 +38,20 @@ const NewOrder = () => {
   const { logActivity } = useActivityLog();
   
   const [selectedStoreId, setSelectedStoreId] = useState<string>('');
-  const { data: storePrices } = useStorePrices(selectedStoreId);
+  const { data: storePrices } = useActiveStorePrices(selectedStoreId);
+  const { data: allStorePrices } = useQuery({
+    queryKey: ['all_store_prices', selectedStoreId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('store_prices')
+        .select('*')
+        .eq('store_id', selectedStoreId)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data as StorePrice[];
+    },
+    enabled: !!selectedStoreId,
+  });
   
   const [cart, setCart] = useState<CartItem[]>([]);
   const [notes, setNotes] = useState('');
@@ -247,6 +260,20 @@ const NewOrder = () => {
     p => !cart.some(item => item.product.id === p.id)
   );
 
+  // Get custom prices for products in cart
+  const getProductPriceOptions = (productId: string) => {
+    const prices = allStorePrices?.filter(sp => sp.product_id === productId) || [];
+    return prices;
+  };
+
+  const handlePriceChange = (productId: string, newPrice: number) => {
+    setCart(cart.map(item => 
+      item.product.id === productId 
+        ? { ...item, unitPrice: newPrice }
+        : item
+    ));
+  };
+
   const isLoadingRepeat = repeatOrderId && isRepeatLoading;
 
   return (
@@ -351,57 +378,91 @@ const NewOrder = () => {
                       <TableRow>
                         <TableHead>Produk</TableHead>
                         <TableHead>Harga</TableHead>
+                        <TableHead>Pilih Harga</TableHead>
                         <TableHead>Qty</TableHead>
                         <TableHead>Subtotal</TableHead>
                         <TableHead></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {cart.map((item) => (
-                        <TableRow key={item.product.id}>
-                          <TableCell>
-                            <div>
-                              <p className="font-medium">{item.product.name}</p>
-                              <p className="text-sm text-muted-foreground">{item.product.unit}</p>
-                            </div>
-                          </TableCell>
-                          <TableCell>{formatCurrency(item.unitPrice)}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
+                      {cart.map((item) => {
+                        const priceOptions = getProductPriceOptions(item.product.id);
+                        const hasCustomPrices = priceOptions.length > 0;
+                        
+                        return (
+                          <TableRow key={item.product.id}>
+                            <TableCell>
+                              <div>
+                                <p className="font-medium">{item.product.name}</p>
+                                <p className="text-sm text-muted-foreground">{item.product.unit}</p>
+                              </div>
+                            </TableCell>
+                            <TableCell>{formatCurrency(item.unitPrice)}</TableCell>
+                            <TableCell>
+                              {hasCustomPrices ? (
+                                <SearchableSelect
+                                  options={[
+                                    { 
+                                      value: String(item.product.default_price), 
+                                      label: `Default: ${formatCurrency(Number(item.product.default_price))}`,
+                                    },
+                                    ...priceOptions.map((p, idx) => ({
+                                      value: String(p.custom_price),
+                                      label: `${formatCurrency(Number(p.custom_price))}${p.is_active ? ' (Aktif)' : ''}`,
+                                      description: idx === 0 && p.is_active ? 'Harga terbaru' : undefined,
+                                    }))
+                                  ]}
+                                  value={String(item.unitPrice)}
+                                  onValueChange={(val) => handlePriceChange(item.product.id, Number(val))}
+                                  placeholder="Pilih harga..."
+                                  searchPlaceholder="Cari harga..."
+                                  emptyText="Tidak ada harga."
+                                  className="w-40"
+                                />
+                              ) : (
+                                <span className="text-sm text-muted-foreground flex items-center gap-1">
+                                  <Tag className="w-3 h-3" />
+                                  Default
+                                </span>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={() => handleUpdateQuantity(item.product.id, -1)}
+                                >
+                                  <Minus className="w-3 h-3" />
+                                </Button>
+                                <span className="w-8 text-center">{item.quantity}</span>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={() => handleUpdateQuantity(item.product.id, 1)}
+                                >
+                                  <Plus className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              {formatCurrency(item.quantity * item.unitPrice)}
+                            </TableCell>
+                            <TableCell>
                               <Button
-                                variant="outline"
+                                variant="ghost"
                                 size="icon"
-                                className="h-8 w-8"
-                                onClick={() => handleUpdateQuantity(item.product.id, -1)}
+                                className="text-destructive hover:text-destructive"
+                                onClick={() => handleRemoveItem(item.product.id)}
                               >
-                                <Minus className="w-3 h-3" />
+                                <Trash2 className="w-4 h-4" />
                               </Button>
-                              <span className="w-8 text-center">{item.quantity}</span>
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                className="h-8 w-8"
-                                onClick={() => handleUpdateQuantity(item.product.id, 1)}
-                              >
-                                <Plus className="w-3 h-3" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                          <TableCell className="font-medium">
-                            {formatCurrency(item.quantity * item.unitPrice)}
-                          </TableCell>
-                          <TableCell>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="text-destructive hover:text-destructive"
-                              onClick={() => handleRemoveItem(item.product.id)}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </CardContent>
