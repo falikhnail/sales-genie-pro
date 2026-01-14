@@ -1,17 +1,10 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useStores } from '@/hooks/useStores';
 import { useActiveProducts } from '@/hooks/useProducts';
 import { useStorePrices, useUpsertStorePrice, useDeleteStorePrice } from '@/hooks/useStorePrices';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -24,6 +17,7 @@ import { DollarSign, Save, X } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency } from '@/lib/formatters';
 import { CurrencyInput } from '@/components/ui/currency-input';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 
 const Pricing = () => {
   const { data: stores, isLoading: storesLoading } = useStores();
@@ -82,18 +76,18 @@ const Pricing = () => {
         <CardContent>
           <div className="max-w-md">
             <Label htmlFor="store">Toko</Label>
-            <Select value={selectedStoreId} onValueChange={setSelectedStoreId}>
-              <SelectTrigger id="store">
-                <SelectValue placeholder="Pilih toko..." />
-              </SelectTrigger>
-              <SelectContent>
-                {stores?.map((store) => (
-                  <SelectItem key={store.id} value={store.id}>
-                    {store.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SearchableSelect
+              options={stores?.map((store) => ({
+                value: store.id,
+                label: store.name,
+                description: store.address || undefined,
+              })) || []}
+              value={selectedStoreId}
+              onValueChange={setSelectedStoreId}
+              placeholder="Pilih toko..."
+              searchPlaceholder="Cari toko..."
+              emptyText="Toko tidak ditemukan."
+            />
           </div>
         </CardContent>
       </Card>
