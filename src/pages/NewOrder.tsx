@@ -9,17 +9,9 @@ import { useCreateOrder, useUpdateOrderWhatsappStatus } from '@/hooks/useOrders'
 import { useActivityLog } from '@/hooks/useActivityLog';
 import { CartItem, Store, Product } from '@/types';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -29,10 +21,11 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ShoppingCart, Plus, Minus, Trash2, Send, MessageCircle, Copy, Info } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, Trash2, Send, MessageCircle, Copy } from 'lucide-react';
 import { formatCurrency, formatPhone } from '@/lib/formatters';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 
 const NewOrder = () => {
   const navigate = useNavigate();
@@ -292,18 +285,18 @@ const NewOrder = () => {
                 <CardTitle>Pilih Toko</CardTitle>
               </CardHeader>
               <CardContent>
-                <Select value={selectedStoreId} onValueChange={handleStoreChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pilih toko..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {stores?.map((store) => (
-                      <SelectItem key={store.id} value={store.id}>
-                        {store.name} {store.contact_person && `- ${store.contact_person}`}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <SearchableSelect
+                  options={stores?.map((store) => ({
+                    value: store.id,
+                    label: store.name + (store.contact_person ? ` - ${store.contact_person}` : ''),
+                    description: store.address || undefined,
+                  })) || []}
+                  value={selectedStoreId}
+                  onValueChange={handleStoreChange}
+                  placeholder="Pilih toko..."
+                  searchPlaceholder="Cari toko..."
+                  emptyText="Toko tidak ditemukan."
+                />
                 {selectedStore && (
                   <div className="mt-3 p-3 bg-muted/30 rounded-lg text-sm">
                     {selectedStore.address && <p>{selectedStore.address}</p>}
@@ -322,18 +315,19 @@ const NewOrder = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="flex gap-2">
-                    <Select value={selectedProductId} onValueChange={setSelectedProductId}>
-                      <SelectTrigger className="flex-1">
-                        <SelectValue placeholder="Pilih produk..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableProducts?.map((product) => (
-                          <SelectItem key={product.id} value={product.id}>
-                            {product.name} - {formatCurrency(getProductPrice(product.id, Number(product.default_price)))}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <SearchableSelect
+                      options={availableProducts?.map((product) => ({
+                        value: product.id,
+                        label: product.name,
+                        description: formatCurrency(getProductPrice(product.id, Number(product.default_price))),
+                      })) || []}
+                      value={selectedProductId}
+                      onValueChange={setSelectedProductId}
+                      placeholder="Pilih produk..."
+                      searchPlaceholder="Cari produk..."
+                      emptyText="Produk tidak ditemukan."
+                      className="flex-1"
+                    />
                     <Button onClick={handleAddToCart} disabled={!selectedProductId}>
                       <Plus className="w-4 h-4 mr-2" />
                       Tambah
