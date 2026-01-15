@@ -14,6 +14,7 @@ import {
   BarChart3,
   Target,
   ClipboardList,
+  GitCompare,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -27,6 +28,7 @@ const Sidebar = () => {
     { path: '/products', label: 'Produk', icon: Package, adminOnly: true },
     { path: '/pricing', label: 'Harga Khusus', icon: DollarSign },
     { path: '/price-history', label: 'Riwayat Harga', icon: History },
+    { path: '/price-comparison', label: 'Perbandingan Harga', icon: GitCompare },
     { path: '/orders/new', label: 'Order Baru', icon: ShoppingCart },
     { path: '/orders', label: 'Riwayat Order', icon: ClipboardList },
     { path: '/targets', label: 'Target', icon: Target },
