@@ -20,6 +20,7 @@ import Users from "./pages/Users";
 import Reports from "./pages/Reports";
 import Targets from "./pages/Targets";
 import ActivityLogs from "./pages/ActivityLogs";
+import Backup from "./pages/Backup";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -47,6 +48,7 @@ const App = () => (
             <Route path="/reports" element={<MainLayout><Reports /></MainLayout>} />
             <Route path="/users" element={<MainLayout><Users /></MainLayout>} />
             <Route path="/activity-logs" element={<MainLayout><ActivityLogs /></MainLayout>} />
+            <Route path="/backup" element={<MainLayout><Backup /></MainLayout>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

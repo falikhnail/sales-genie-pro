@@ -15,6 +15,7 @@ import {
   Target,
   ClipboardList,
   GitCompare,
+  Database,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -33,6 +34,7 @@ const Sidebar = () => {
     { path: '/orders', label: 'Riwayat Order', icon: ClipboardList },
     { path: '/targets', label: 'Target', icon: Target },
     { path: '/reports', label: 'Laporan', icon: BarChart3 },
+    { path: '/backup', label: 'Backup Data', icon: Database, adminOnly: true },
     { path: '/users', label: 'Pegawai', icon: Users, adminOnly: true },
     { path: '/activity-logs', label: 'Log Aktivitas', icon: ClipboardList, adminOnly: true },
   ];
