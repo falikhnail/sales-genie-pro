@@ -12,6 +12,7 @@ import Stores from "./pages/Stores";
 import Products from "./pages/Products";
 import Pricing from "./pages/Pricing";
 import PriceHistory from "./pages/PriceHistory";
+import PriceComparison from "./pages/PriceComparison";
 import NewOrder from "./pages/NewOrder";
 import EditOrder from "./pages/EditOrder";
 import Orders from "./pages/Orders";
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/products" element={<MainLayout><Products /></MainLayout>} />
             <Route path="/pricing" element={<MainLayout><Pricing /></MainLayout>} />
             <Route path="/price-history" element={<MainLayout><PriceHistory /></MainLayout>} />
+            <Route path="/price-comparison" element={<MainLayout><PriceComparison /></MainLayout>} />
             <Route path="/orders/new" element={<MainLayout><NewOrder /></MainLayout>} />
             <Route path="/orders/edit/:id" element={<MainLayout><EditOrder /></MainLayout>} />
             <Route path="/orders" element={<MainLayout><Orders /></MainLayout>} />
