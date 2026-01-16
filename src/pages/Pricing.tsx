@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useStores } from '@/hooks/useStores';
 import { useActiveProducts } from '@/hooks/useProducts';
 import { useActiveStorePrices, useUpsertStorePrice, useDeleteStorePrice } from '@/hooks/useStorePrices';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -13,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { DollarSign, Save, X } from 'lucide-react';
+import { DollarSign, Save, X, Search } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency } from '@/lib/formatters';
 import { CurrencyInput } from '@/components/ui/currency-input';
@@ -28,6 +29,19 @@ const Pricing = () => {
   const deletePrice = useDeleteStorePrice();
 
   const [editingPrices, setEditingPrices] = useState<Record<string, number>>({});
+  const [productSearch, setProductSearch] = useState('');
+
+  const filteredProducts = useMemo(() => {
+    if (!products) return [];
+    if (!productSearch.trim()) return products;
+    
+    const search = productSearch.toLowerCase();
+    return products.filter(product => 
+      product.name.toLowerCase().includes(search) ||
+      (product.sku && product.sku.toLowerCase().includes(search)) ||
+      (product.category && product.category.toLowerCase().includes(search))
+    );
+  }, [products, productSearch]);
 
   const getCustomPrice = (productId: string) => {
     return storePrices?.find(sp => sp.product_id === productId);
@@ -104,75 +118,91 @@ const Pricing = () => {
                   <Skeleton key={i} className="h-12" />
                 ))}
               </div>
-            ) : products?.length === 0 ? (
-              <p className="text-muted-foreground text-center py-8">Belum ada produk aktif</p>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Produk</TableHead>
-                    <TableHead>Harga Default</TableHead>
-                    <TableHead>Harga Khusus</TableHead>
-                    <TableHead className="w-[120px]">Aksi</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {products?.map((product) => {
-                    const customPrice = getCustomPrice(product.id);
-                    const editingValue = editingPrices[product.id];
-                    const isEditing = editingValue !== undefined;
-
-                    return (
-                      <TableRow key={product.id}>
-                        <TableCell>
-                          <div>
-                            <p className="font-medium">{product.name}</p>
-                            {product.sku && (
-                              <p className="text-sm text-muted-foreground">{product.sku}</p>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {formatCurrency(Number(product.default_price))}
-                        </TableCell>
-                        <TableCell>
-                          <div className="w-44">
-                            <CurrencyInput
-                              placeholder="0"
-                              value={isEditing ? editingValue : (customPrice ? Number(customPrice.custom_price) : 0)}
-                              onChange={(value) => handlePriceChange(product.id, value)}
-                            />
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-1">
-                            {isEditing && (
-                              <Button
-                                size="icon"
-                                onClick={() => handleSavePrice(product.id)}
-                                disabled={upsertPrice.isPending}
-                              >
-                                <Save className="w-4 h-4" />
-                              </Button>
-                            )}
-                            {customPrice && !isEditing && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="text-destructive hover:text-destructive"
-                                onClick={() => handleDeletePrice(customPrice.id)}
-                                disabled={deletePrice.isPending}
-                              >
-                                <X className="w-4 h-4" />
-                              </Button>
-                            )}
-                          </div>
-                        </TableCell>
+              <div className="space-y-4">
+                <div className="relative max-w-sm">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Cari produk (nama, SKU, kategori)..."
+                    value={productSearch}
+                    onChange={(e) => setProductSearch(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+                
+                {filteredProducts.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-8">
+                    {productSearch ? 'Produk tidak ditemukan' : 'Belum ada produk aktif'}
+                  </p>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Produk</TableHead>
+                        <TableHead>Harga Default</TableHead>
+                        <TableHead>Harga Khusus</TableHead>
+                        <TableHead className="w-[120px]">Aksi</TableHead>
                       </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredProducts.map((product) => {
+                        const customPrice = getCustomPrice(product.id);
+                        const editingValue = editingPrices[product.id];
+                        const isEditing = editingValue !== undefined;
+
+                        return (
+                          <TableRow key={product.id}>
+                            <TableCell>
+                              <div>
+                                <p className="font-medium">{product.name}</p>
+                                {product.sku && (
+                                  <p className="text-sm text-muted-foreground">{product.sku}</p>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-muted-foreground">
+                              {formatCurrency(Number(product.default_price))}
+                            </TableCell>
+                            <TableCell>
+                              <div className="w-44">
+                                <CurrencyInput
+                                  placeholder="0"
+                                  value={isEditing ? editingValue : (customPrice ? Number(customPrice.custom_price) : 0)}
+                                  onChange={(value) => handlePriceChange(product.id, value)}
+                                />
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex gap-1">
+                                {isEditing && (
+                                  <Button
+                                    size="icon"
+                                    onClick={() => handleSavePrice(product.id)}
+                                    disabled={upsertPrice.isPending}
+                                  >
+                                    <Save className="w-4 h-4" />
+                                  </Button>
+                                )}
+                                {customPrice && !isEditing && (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="text-destructive hover:text-destructive"
+                                    onClick={() => handleDeletePrice(customPrice.id)}
+                                    disabled={deletePrice.isPending}
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </Button>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                )}
+              </div>
             )}
           </CardContent>
         </Card>
