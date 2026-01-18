@@ -379,14 +379,15 @@ const Orders = () => {
                   <Copy className="w-4 h-4 mr-2" />
                   Repeat Order
                 </Button>
-                {selectedOrder.store?.whatsapp && !selectedOrder.whatsapp_sent && (
+                {selectedOrder.store?.whatsapp && (
                   <Button
                     className="flex-1"
+                    variant={selectedOrder.whatsapp_sent ? "outline" : "default"}
                     onClick={handleSendWhatsApp}
                     disabled={updateWhatsappStatus.isPending}
                   >
                     <MessageCircle className="w-4 h-4 mr-2" />
-                    Kirim ke WhatsApp
+                    {selectedOrder.whatsapp_sent ? 'Kirim Ulang ke WhatsApp' : 'Kirim ke WhatsApp'}
                   </Button>
                 )}
               </div>
