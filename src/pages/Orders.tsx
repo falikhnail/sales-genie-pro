@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import { useOrders, useOrderItems, useUpdateOrderWhatsappStatus, useUpdateOrderStatus, useDeleteOrder } from '@/hooks/useOrders';
 import { useStores } from '@/hooks/useStores';
 import { Order } from '@/types';
@@ -49,9 +50,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { History, Eye, MessageCircle, Search, Copy, MoreHorizontal, Trash2, CheckCircle, Clock, XCircle, PackageCheck, Pencil } from 'lucide-react';
+import { History, Eye, MessageCircle, Search, Copy, MoreHorizontal, Trash2, CheckCircle, Clock, XCircle, PackageCheck, Pencil, Send } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { formatCurrency, formatDate, formatPhone } from '@/lib/formatters';
+import { formatCurrency, formatDate, formatDateTime, formatPhone } from '@/lib/formatters';
 
 const Orders = () => {
   const navigate = useNavigate();
@@ -108,6 +109,24 @@ const Orders = () => {
     const whatsappUrl = `https://wa.me/${phone}?text=${message}`;
     window.open(whatsappUrl, '_blank');
     await updateWhatsappStatus.mutateAsync(selectedOrder.id);
+  };
+
+  const handleSendWhatsAppFromTable = async (order: Order & { store: any }) => {
+    if (!order.store?.whatsapp) return;
+
+    // Fetch order items for this order
+    const { data: items, error } = await supabase
+      .from('order_items')
+      .select(`*, product:products (*)`)
+      .eq('order_id', order.id);
+    
+    if (error || !items) return;
+
+    const message = generateWhatsAppMessage(order, items);
+    const phone = formatPhone(order.store.whatsapp);
+    const whatsappUrl = `https://wa.me/${phone}?text=${message}`;
+    window.open(whatsappUrl, '_blank');
+    await updateWhatsappStatus.mutateAsync(order.id);
   };
 
   const handleRepeatOrder = (orderId: string) => {
@@ -232,9 +251,16 @@ const Orders = () => {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={order.whatsapp_sent ? 'default' : 'outline'}>
-                        {order.whatsapp_sent ? 'Terkirim' : 'Belum'}
-                      </Badge>
+                      <div className="flex flex-col gap-1">
+                        <Badge variant={order.whatsapp_sent ? 'default' : 'outline'}>
+                          {order.whatsapp_sent ? 'Terkirim' : 'Belum'}
+                        </Badge>
+                        {order.whatsapp_sent_at && (
+                          <span className="text-xs text-muted-foreground">
+                            {formatDateTime(order.whatsapp_sent_at)}
+                          </span>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {formatDate(order.created_at)}
@@ -268,6 +294,12 @@ const Orders = () => {
                               <Copy className="w-4 h-4 mr-2" />
                               Repeat Order
                             </DropdownMenuItem>
+                            {order.store?.whatsapp && (
+                              <DropdownMenuItem onClick={() => handleSendWhatsAppFromTable(order)}>
+                                <Send className="w-4 h-4 mr-2" />
+                                {order.whatsapp_sent ? 'Kirim Ulang WhatsApp' : 'Kirim WhatsApp'}
+                              </DropdownMenuItem>
+                            )}
                             <DropdownMenuItem onClick={() => handleStatusChange(order.id, 'pending')}>
                               <Clock className="w-4 h-4 mr-2" />
                               Set Pending
@@ -326,9 +358,16 @@ const Orders = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">WhatsApp</p>
-                  <Badge variant={selectedOrder.whatsapp_sent ? 'default' : 'outline'}>
-                    {selectedOrder.whatsapp_sent ? 'Terkirim' : 'Belum Terkirim'}
-                  </Badge>
+                  <div className="flex flex-col gap-1">
+                    <Badge variant={selectedOrder.whatsapp_sent ? 'default' : 'outline'}>
+                      {selectedOrder.whatsapp_sent ? 'Terkirim' : 'Belum Terkirim'}
+                    </Badge>
+                    {selectedOrder.whatsapp_sent_at && (
+                      <span className="text-xs text-muted-foreground">
+                        Terakhir: {formatDateTime(selectedOrder.whatsapp_sent_at)}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
 
