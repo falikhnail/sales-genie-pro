@@ -39,6 +39,7 @@ const EditOrder = () => {
   const [notes, setNotes] = useState('');
   const [selectedProductId, setSelectedProductId] = useState<string>('');
   const [isInitialized, setIsInitialized] = useState(false);
+  const [recentlyAddedId, setRecentlyAddedId] = useState<string | null>(null);
 
   const updateOrder = useUpdateOrder();
 
@@ -85,6 +86,11 @@ const EditOrder = () => {
       const unitPrice = getProductPrice(product.id, Number(product.default_price));
       setCart([...cart, { product, quantity: 1, unitPrice }]);
     }
+    
+    // Set highlight for the added product
+    setRecentlyAddedId(product.id);
+    setTimeout(() => setRecentlyAddedId(null), 1500);
+    
     setSelectedProductId('');
   };
 
@@ -242,7 +248,10 @@ const EditOrder = () => {
                   </TableHeader>
                   <TableBody>
                     {cart.map((item) => (
-                      <TableRow key={item.product.id}>
+                      <TableRow 
+                        key={item.product.id}
+                        className={recentlyAddedId === item.product.id ? 'animate-fade-in bg-primary/10' : ''}
+                      >
                         <TableCell>
                           <div>
                             <p className="font-medium">{item.product.name}</p>
