@@ -9,13 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 import {
   Table,
   TableBody,
@@ -207,18 +201,18 @@ const EditOrder = () => {
             </CardHeader>
             <CardContent>
               <div className="flex gap-2">
-                <Select value={selectedProductId} onValueChange={setSelectedProductId}>
-                  <SelectTrigger className="flex-1">
-                    <SelectValue placeholder="Pilih produk..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableProducts?.map((product) => (
-                      <SelectItem key={product.id} value={product.id}>
-                        {product.name} - {formatCurrency(getProductPrice(product.id, Number(product.default_price)))}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <SearchableSelect
+                  value={selectedProductId}
+                  onValueChange={setSelectedProductId}
+                  placeholder="Cari & pilih produk..."
+                  searchPlaceholder="Ketik nama produk..."
+                  emptyText="Produk tidak ditemukan"
+                  options={availableProducts?.map((product) => ({
+                    value: product.id,
+                    label: `${product.name} - ${formatCurrency(getProductPrice(product.id, Number(product.default_price)))}`,
+                  })) || []}
+                  className="flex-1"
+                />
                 <Button onClick={handleAddToCart} disabled={!selectedProductId}>
                   <Plus className="w-4 h-4 mr-2" />
                   Tambah
