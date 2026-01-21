@@ -43,6 +43,16 @@ const EditOrder = () => {
 
   const updateOrder = useUpdateOrder();
 
+  // Auto-scroll to newly added product
+  useEffect(() => {
+    if (recentlyAddedId) {
+      const element = document.getElementById(`cart-item-${recentlyAddedId}`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  }, [recentlyAddedId]);
+
   // Initialize cart with existing order items
   useEffect(() => {
     if (order && existingItems && products && storePrices !== undefined && !isInitialized) {
@@ -250,6 +260,7 @@ const EditOrder = () => {
                     {cart.map((item) => (
                       <TableRow 
                         key={item.product.id}
+                        id={`cart-item-${item.product.id}`}
                         className={recentlyAddedId === item.product.id ? 'animate-fade-in bg-primary/10' : ''}
                       >
                         <TableCell>
