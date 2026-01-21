@@ -24,6 +24,16 @@ export const formatDateShort = (dateString: string): string => {
   }).format(new Date(dateString));
 };
 
+export const formatDateTime = (dateString: string): string => {
+  return new Intl.DateTimeFormat('id-ID', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(dateString));
+};
+
 export const formatPhone = (phone: string): string => {
   // Remove all non-digit characters
   const cleaned = phone.replace(/\D/g, '');

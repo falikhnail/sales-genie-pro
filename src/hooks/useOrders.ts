@@ -122,7 +122,10 @@ export const useUpdateOrderWhatsappStatus = () => {
     mutationFn: async (orderId: string) => {
       const { error } = await supabase
         .from('orders')
-        .update({ whatsapp_sent: true })
+        .update({ 
+          whatsapp_sent: true,
+          whatsapp_sent_at: new Date().toISOString()
+        })
         .eq('id', orderId);
       
       if (error) throw error;

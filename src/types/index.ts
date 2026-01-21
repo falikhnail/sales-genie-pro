@@ -41,6 +41,7 @@ export interface Order {
   total_amount: number;
   notes: string | null;
   whatsapp_sent: boolean;
+  whatsapp_sent_at: string | null;
   status: string;
   created_at: string;
   updated_at: string;
