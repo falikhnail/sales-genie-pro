@@ -58,6 +58,17 @@ const NewOrder = () => {
   const [selectedProductId, setSelectedProductId] = useState<string>('');
   const [isRepeatLoading, setIsRepeatLoading] = useState(false);
   const [repeatOrderNumber, setRepeatOrderNumber] = useState<string | null>(null);
+  const [recentlyAddedId, setRecentlyAddedId] = useState<string | null>(null);
+
+  // Auto-scroll to newly added product
+  useEffect(() => {
+    if (recentlyAddedId) {
+      const element = document.getElementById(`cart-item-${recentlyAddedId}`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  }, [recentlyAddedId]);
 
   const createOrder = useCreateOrder();
   const updateWhatsappStatus = useUpdateOrderWhatsappStatus();
@@ -164,6 +175,11 @@ const NewOrder = () => {
       const unitPrice = getProductPrice(product.id, Number(product.default_price));
       setCart([...cart, { product, quantity: 1, unitPrice }]);
     }
+    
+    // Highlight and scroll to the added product
+    setRecentlyAddedId(product.id);
+    setTimeout(() => setRecentlyAddedId(null), 1500);
+    
     setSelectedProductId('');
   };
 
@@ -389,8 +405,12 @@ const NewOrder = () => {
                         const priceOptions = getProductPriceOptions(item.product.id);
                         const hasCustomPrices = priceOptions.length > 0;
                         
-                        return (
-                          <TableRow key={item.product.id}>
+                          return (
+                          <TableRow 
+                            key={item.product.id}
+                            id={`cart-item-${item.product.id}`}
+                            className={recentlyAddedId === item.product.id ? 'animate-fade-in bg-primary/10' : ''}
+                          >
                             <TableCell>
                               <div>
                                 <p className="font-medium">{item.product.name}</p>
