@@ -363,6 +363,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_setup_needed: { Args: never; Returns: boolean }
       generate_order_number: { Args: never; Returns: string }
       has_role: {
         Args: {
