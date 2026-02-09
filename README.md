@@ -1,73 +1,70 @@
-# Welcome to your Lovable project
+# Sales Genie Pro 🧞‍♂️
 
-## Project info
+Sistem Manajemen Penjualan & Order Profesional berbasis web untuk mengelola toko, produk, harga, pesanan, dan laporan penjualan secara efisien.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## ✨ Fitur Utama
 
-## How can I edit this code?
+- **Manajemen Toko** — Kelola data toko, kontak, dan alamat
+- **Manajemen Produk** — Katalog produk dengan SKU, kategori, dan harga default
+- **Harga Khusus per Toko** — Atur harga custom untuk setiap toko
+- **Perbandingan Harga** — Bandingkan harga produk antar toko
+- **Riwayat Harga** — Lacak perubahan harga dari waktu ke waktu
+- **Pembuatan Order** — Buat dan kelola pesanan dengan mudah
+- **Kirim via WhatsApp** — Kirim detail order langsung ke WhatsApp toko
+- **Target Penjualan** — Tetapkan dan pantau target penjualan bulanan
+- **Dashboard & Laporan** — Visualisasi data penjualan dan performa
+- **Activity Log** — Catat semua aktivitas pengguna dalam sistem
+- **Backup Data** — Ekspor dan backup data sistem
+- **Multi-User & Role** — Dukungan peran Admin dan Sales
+- **Autentikasi Username** — Login menggunakan username dan password
 
-There are several ways of editing your application.
+## 🛠️ Teknologi
 
-**Use Lovable**
+- **Frontend:** React, TypeScript, Vite, Tailwind CSS
+- **UI Components:** shadcn/ui
+- **Backend:** Lovable Cloud (Database, Auth, Edge Functions)
+- **State Management:** TanStack React Query
+- **Charts:** Recharts
+- **Routing:** React Router DOM
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## 📁 Struktur Proyek
 
-Changes made via Lovable will be committed automatically to this repo.
+```
+src/
+├── components/       # Komponen UI
+│   ├── layout/       # Layout utama (Sidebar, MainLayout)
+│   └── ui/           # shadcn/ui components
+├── contexts/         # React Context (Auth)
+├── hooks/            # Custom hooks (orders, products, stores, dll)
+├── integrations/     # Integrasi backend
+├── lib/              # Utilitas (formatter, export)
+├── pages/            # Halaman aplikasi
+├── types/            # TypeScript type definitions
+supabase/
+├── functions/        # Backend edge functions
+├── migrations/       # Database migrations
+```
 
-**Use your preferred IDE**
+## 🚀 Cara Menjalankan
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
+```bash
+# Clone repository
 git clone <YOUR_GIT_URL>
 
-# Step 2: Navigate to the project directory.
+# Masuk ke direktori proyek
 cd <YOUR_PROJECT_NAME>
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Install dependencies
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Jalankan development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## 👤 Setup Awal
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Saat pertama kali dijalankan, sistem akan menampilkan halaman **Initial Setup** untuk membuat akun admin pertama. Setelah setup selesai, pengguna akan diarahkan ke halaman login.
 
-**Use GitHub Codespaces**
+## 📄 Lisensi
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Hak cipta dilindungi. Seluruh kode dalam repository ini adalah milik pemilik proyek.
