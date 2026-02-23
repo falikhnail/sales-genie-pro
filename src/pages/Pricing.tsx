@@ -14,11 +14,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { DollarSign, Save, X, Search } from 'lucide-react';
+import { DollarSign, Save, X, Search, Percent } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency } from '@/lib/formatters';
 import { CurrencyInput } from '@/components/ui/currency-input';
 import { SearchableSelect } from '@/components/ui/searchable-select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Slider } from '@/components/ui/slider';
 
 const Pricing = () => {
   const { data: stores, isLoading: storesLoading } = useStores();
@@ -30,6 +32,13 @@ const Pricing = () => {
 
   const [editingPrices, setEditingPrices] = useState<Record<string, number>>({});
   const [productSearch, setProductSearch] = useState('');
+  const [percentages, setPercentages] = useState<Record<string, number>>({});
+
+  const handlePercentageChange = (productId: string, defaultPrice: number, percent: number) => {
+    setPercentages(prev => ({ ...prev, [productId]: percent }));
+    const newPrice = Math.round(defaultPrice + (defaultPrice * percent / 100));
+    setEditingPrices(prev => ({ ...prev, [productId]: newPrice }));
+  };
 
   const filteredProducts = useMemo(() => {
     if (!products) return [];
@@ -169,12 +178,50 @@ const Pricing = () => {
                               {formatCurrency(Number(product.default_price))}
                             </TableCell>
                             <TableCell>
-                              <div className="w-44">
-                                <CurrencyInput
-                                  placeholder="0"
-                                  value={isEditing ? editingValue : (customPrice ? Number(customPrice.custom_price) : 0)}
-                                  onChange={(value) => handlePriceChange(product.id, value)}
-                                />
+                              <div className="flex items-center gap-2">
+                                <div className="w-44">
+                                  <CurrencyInput
+                                    placeholder="0"
+                                    value={isEditing ? editingValue : (customPrice ? Number(customPrice.custom_price) : 0)}
+                                    onChange={(value) => handlePriceChange(product.id, value)}
+                                  />
+                                </div>
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <Button variant="outline" size="icon" className="shrink-0">
+                                      <Percent className="w-4 h-4" />
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-72" align="start">
+                                    <div className="space-y-3">
+                                      <p className="text-sm font-medium">Sesuaikan dengan Persentase</p>
+                                      <p className="text-xs text-muted-foreground">
+                                        Harga default: {formatCurrency(Number(product.default_price))}
+                                      </p>
+                                      <div className="flex items-center gap-3">
+                                        <Slider
+                                          min={-50}
+                                          max={100}
+                                          step={1}
+                                          value={[percentages[product.id] ?? 0]}
+                                          onValueChange={([val]) => handlePercentageChange(product.id, Number(product.default_price), val)}
+                                        />
+                                        <div className="flex items-center gap-1 shrink-0">
+                                          <Input
+                                            type="number"
+                                            className="w-16 h-8 text-center text-sm"
+                                            value={percentages[product.id] ?? 0}
+                                            onChange={(e) => handlePercentageChange(product.id, Number(product.default_price), Number(e.target.value))}
+                                          />
+                                          <span className="text-sm text-muted-foreground">%</span>
+                                        </div>
+                                      </div>
+                                      <p className="text-sm font-medium">
+                                        Hasil: {formatCurrency(Math.round(Number(product.default_price) + (Number(product.default_price) * (percentages[product.id] ?? 0) / 100)))}
+                                      </p>
+                                    </div>
+                                  </PopoverContent>
+                                </Popover>
                               </div>
                             </TableCell>
                             <TableCell>
