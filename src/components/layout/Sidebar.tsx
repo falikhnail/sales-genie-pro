@@ -16,6 +16,7 @@ import {
   ClipboardList,
   GitCompare,
   Database,
+  Wallet,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -32,6 +33,7 @@ const Sidebar = () => {
     { path: '/price-comparison', label: 'Perbandingan Harga', icon: GitCompare },
     { path: '/orders/new', label: 'Order Baru', icon: ShoppingCart },
     { path: '/orders', label: 'Riwayat Order', icon: ClipboardList },
+    { path: '/receivables', label: 'Piutang', icon: Wallet },
     { path: '/targets', label: 'Target', icon: Target },
     { path: '/reports', label: 'Laporan', icon: BarChart3 },
     { path: '/backup', label: 'Backup Data', icon: Database, adminOnly: true },
