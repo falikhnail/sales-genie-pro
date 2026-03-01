@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { useReceivables, useStoreSummary, useCreateReceivable, useAddPayment, usePayments } from '@/hooks/useReceivables';
+import { useReceivables, useStoreSummary, useCreateReceivable, useAddPayment, usePayments, useDeleteReceivable } from '@/hooks/useReceivables';
 import { useStores } from '@/hooks/useStores';
-import { formatCurrency, formatDateShort, formatDate } from '@/lib/formatters';
+import { formatCurrency, formatDateShort } from '@/lib/formatters';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,11 +9,14 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import { CurrencyInput } from '@/components/ui/currency-input';
-import { Plus, Wallet, AlertCircle, CheckCircle, Clock, Store, CreditCard, Eye } from 'lucide-react';
+import { Plus, Wallet, AlertCircle, CheckCircle, Clock, Store, CreditCard, Eye, Trash2, MessageCircle } from 'lucide-react';
+import { format } from 'date-fns';
+import { id as localeId } from 'date-fns/locale';
 
 const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: any }> = {
   unpaid: { label: 'Belum Bayar', variant: 'destructive', icon: AlertCircle },
@@ -28,16 +31,46 @@ const paymentMethods = [
   { value: 'other', label: 'Lainnya' },
 ];
 
+const generateReminderMessage = (storeName: string, invoiceNumber: string, amount: number, dueDate: string | null) => {
+  const formattedAmount = formatCurrency(amount);
+  const formattedDate = dueDate ? format(new Date(dueDate), 'dd/MM/yyyy', { locale: localeId }) : '-';
+
+  return `Kepada Yth. ${storeName}
+
+Dengan hormat,
+
+Bersama ini kami sampaikan pengingat pembayaran piutang dengan rincian sebagai berikut:
+
+Nomor Transaksi: ${invoiceNumber}
+Jumlah Terutang: ${formattedAmount}
+Tanggal Jatuh Tempo: ${formattedDate}
+
+Pembayaran dapat dilakukan melalui transfer ke rekening berikut:
+- BRI: 592501013144533
+- BCA: 0982222221
+- BNI: 5557773731
+Atas nama: ANDRI EKA SETIAWAN
+
+Kami mohon pembayaran dapat segera dilakukan sebelum tanggal jatuh tempo.
+
+Atas perhatian dan kerjasamanya, kami ucapkan terima kasih.
+
+Hormat kami,
+CV. Manunggal Karya`;
+};
+
 const Receivables = () => {
   const { data: receivables = [], isLoading } = useReceivables();
   const { data: storeSummary = [] } = useStoreSummary();
   const { data: stores = [] } = useStores();
   const createReceivable = useCreateReceivable();
   const addPayment = useAddPayment();
+  const deleteReceivable = useDeleteReceivable();
 
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedReceivable, setSelectedReceivable] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterStore, setFilterStore] = useState<string>('all');
@@ -93,6 +126,28 @@ const Receivables = () => {
     );
   };
 
+  const handleDeleteReceivable = () => {
+    if (!selectedReceivable) return;
+    deleteReceivable.mutate(selectedReceivable, {
+      onSuccess: () => {
+        setShowDeleteDialog(false);
+        setSelectedReceivable(null);
+      },
+    });
+  };
+
+  const handleSendReminder = (receivable: any) => {
+    const storeName = receivable.store?.name || 'Pelanggan';
+    const storeWhatsapp = stores.find(s => s.id === receivable.store_id)?.whatsapp;
+    const message = generateReminderMessage(storeName, receivable.invoice_number, Number(receivable.remaining_amount), receivable.due_date);
+    const encodedMessage = encodeURIComponent(message);
+    const phone = storeWhatsapp ? storeWhatsapp.replace(/[^0-9]/g, '') : '';
+    const url = phone
+      ? `https://wa.me/${phone}?text=${encodedMessage}`
+      : `https://wa.me/?text=${encodedMessage}`;
+    window.open(url, '_blank');
+  };
+
   const openPaymentDialog = (receivableId: string) => {
     setSelectedReceivable(receivableId);
     setShowPaymentDialog(true);
@@ -101,6 +156,11 @@ const Receivables = () => {
   const openDetailDialog = (receivableId: string) => {
     setSelectedReceivable(receivableId);
     setShowDetailDialog(true);
+  };
+
+  const openDeleteDialog = (receivableId: string) => {
+    setSelectedReceivable(receivableId);
+    setShowDeleteDialog(true);
   };
 
   const selectedReceivableData = receivables.find((r) => r.id === selectedReceivable);
@@ -205,7 +265,6 @@ const Receivables = () => {
         </TabsList>
 
         <TabsContent value="list" className="space-y-4">
-          {/* Filters */}
           <div className="flex gap-3">
             <Select value={filterStatus} onValueChange={setFilterStatus}>
               <SelectTrigger className="w-48"><SelectValue placeholder="Filter status" /></SelectTrigger>
@@ -271,14 +330,22 @@ const Receivables = () => {
                           <TableCell>{r.due_date ? formatDateShort(r.due_date) : '-'}</TableCell>
                           <TableCell>
                             <div className="flex gap-1">
-                              <Button size="sm" variant="outline" onClick={() => openDetailDialog(r.id)}>
+                              <Button size="sm" variant="outline" onClick={() => openDetailDialog(r.id)} title="Detail">
                                 <Eye className="w-3 h-3" />
                               </Button>
                               {r.status !== 'paid' && (
-                                <Button size="sm" onClick={() => openPaymentDialog(r.id)}>
-                                  <CreditCard className="w-3 h-3 mr-1" /> Bayar
-                                </Button>
+                                <>
+                                  <Button size="sm" onClick={() => openPaymentDialog(r.id)} title="Catat Pembayaran">
+                                    <CreditCard className="w-3 h-3" />
+                                  </Button>
+                                  <Button size="sm" variant="outline" onClick={() => handleSendReminder(r)} title="Kirim Reminder WhatsApp" className="text-primary">
+                                    <MessageCircle className="w-3 h-3" />
+                                  </Button>
+                                </>
                               )}
+                              <Button size="sm" variant="outline" onClick={() => openDeleteDialog(r.id)} title="Hapus" className="text-destructive hover:text-destructive">
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -318,7 +385,6 @@ const Receivables = () => {
                       <span>{s.total_receivables} piutang total</span>
                       <span>{s.unpaid_count} belum lunas</span>
                     </div>
-                    {/* Progress bar */}
                     <div className="mt-2 h-2 bg-muted rounded-full overflow-hidden">
                       <div
                         className="h-full bg-primary rounded-full transition-all"
@@ -387,6 +453,26 @@ const Receivables = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hapus Piutang</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah Anda yakin ingin menghapus piutang{' '}
+              <span className="font-semibold">{selectedReceivableData?.invoice_number}</span>?
+              Semua data pembayaran terkait juga akan dihapus. Tindakan ini tidak dapat dibatalkan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteReceivable} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Hapus
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
@@ -438,7 +524,5 @@ const ReceivableDetail = ({ receivable }: { receivable: any }) => {
     </div>
   );
 };
-
-const paymentMethods2 = paymentMethods; // reuse for detail
 
 export default Receivables;
