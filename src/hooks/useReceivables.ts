@@ -200,3 +200,34 @@ export const useAddPayment = () => {
     },
   });
 };
+
+export const useDeleteReceivable = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (receivableId: string) => {
+      // Delete payments first
+      const { error: paymentsError } = await supabase
+        .from('payments')
+        .delete()
+        .eq('receivable_id', receivableId);
+      if (paymentsError) throw paymentsError;
+
+      // Then delete receivable
+      const { error } = await supabase
+        .from('receivables')
+        .delete()
+        .eq('id', receivableId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['receivables'] });
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
+      toast({ title: 'Piutang berhasil dihapus' });
+    },
+    onError: (error: any) => {
+      toast({ title: 'Gagal menghapus piutang', description: error.message, variant: 'destructive' });
+    },
+  });
+};
