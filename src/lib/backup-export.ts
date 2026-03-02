@@ -19,43 +19,31 @@ export const exportBackupToJSON = (data: BackupData, filename?: string) => {
 export const exportBackupToExcel = (data: BackupData, filename?: string) => {
   const workbook = XLSX.utils.book_new();
 
-  // Stores sheet
   if (data.stores.length > 0) {
-    const storesSheet = XLSX.utils.json_to_sheet(data.stores);
-    XLSX.utils.book_append_sheet(workbook, storesSheet, 'Toko');
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(data.stores), 'Toko');
   }
-
-  // Products sheet
   if (data.products.length > 0) {
-    const productsSheet = XLSX.utils.json_to_sheet(data.products);
-    XLSX.utils.book_append_sheet(workbook, productsSheet, 'Produk');
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(data.products), 'Produk');
   }
-
-  // Orders sheet
   if (data.orders.length > 0) {
-    const ordersSheet = XLSX.utils.json_to_sheet(data.orders);
-    XLSX.utils.book_append_sheet(workbook, ordersSheet, 'Order');
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(data.orders), 'Order');
   }
-
-  // Order Items sheet
   if (data.order_items.length > 0) {
-    const orderItemsSheet = XLSX.utils.json_to_sheet(data.order_items);
-    XLSX.utils.book_append_sheet(workbook, orderItemsSheet, 'Item Order');
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(data.order_items), 'Item Order');
   }
-
-  // Store Prices sheet
   if (data.store_prices.length > 0) {
-    const storePricesSheet = XLSX.utils.json_to_sheet(data.store_prices);
-    XLSX.utils.book_append_sheet(workbook, storePricesSheet, 'Harga Khusus');
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(data.store_prices), 'Harga Khusus');
   }
-
-  // Sales Targets sheet
   if (data.sales_targets.length > 0) {
-    const salesTargetsSheet = XLSX.utils.json_to_sheet(data.sales_targets);
-    XLSX.utils.book_append_sheet(workbook, salesTargetsSheet, 'Target Penjualan');
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(data.sales_targets), 'Target Penjualan');
+  }
+  if (data.receivables.length > 0) {
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(data.receivables), 'Piutang');
+  }
+  if (data.payments.length > 0) {
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(data.payments), 'Pembayaran');
   }
 
-  // Metadata sheet
   const metadataSheet = XLSX.utils.json_to_sheet([{
     'Waktu Export': data.exported_at,
     'Versi': data.version,
@@ -64,7 +52,9 @@ export const exportBackupToExcel = (data: BackupData, filename?: string) => {
     'Total Order': data.orders.length,
     'Total Item Order': data.order_items.length,
     'Total Harga Khusus': data.store_prices.length,
-    'Total Target': data.sales_targets.length
+    'Total Target': data.sales_targets.length,
+    'Total Piutang': data.receivables.length,
+    'Total Pembayaran': data.payments.length
   }]);
   XLSX.utils.book_append_sheet(workbook, metadataSheet, 'Info Backup');
 
@@ -84,6 +74,9 @@ export const parseBackupFile = (file: File): Promise<BackupData> => {
           if (!data.version || !data.exported_at) {
             throw new Error('Invalid backup file format');
           }
+          // Ensure backward compatibility
+          if (!data.receivables) data.receivables = [];
+          if (!data.payments) data.payments = [];
           resolve(data);
         } else if (file.name.endsWith('.xlsx')) {
           const workbook = XLSX.read(content, { type: 'binary' });
@@ -95,8 +88,10 @@ export const parseBackupFile = (file: File): Promise<BackupData> => {
             order_items: [],
             store_prices: [],
             sales_targets: [],
+            receivables: [],
+            payments: [],
             exported_at: new Date().toISOString(),
-            version: '1.0'
+            version: '2.0'
           };
 
           if (workbook.SheetNames.includes('Toko')) {
@@ -116,6 +111,12 @@ export const parseBackupFile = (file: File): Promise<BackupData> => {
           }
           if (workbook.SheetNames.includes('Target Penjualan')) {
             data.sales_targets = XLSX.utils.sheet_to_json(workbook.Sheets['Target Penjualan']);
+          }
+          if (workbook.SheetNames.includes('Piutang')) {
+            data.receivables = XLSX.utils.sheet_to_json(workbook.Sheets['Piutang']);
+          }
+          if (workbook.SheetNames.includes('Pembayaran')) {
+            data.payments = XLSX.utils.sheet_to_json(workbook.Sheets['Pembayaran']);
           }
 
           resolve(data);
