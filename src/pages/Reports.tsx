@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Order, OrderItem } from '@/types';
+import { useReceivables } from '@/hooks/useReceivables';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -37,7 +38,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { BarChart3, Download, CalendarIcon, TrendingUp, Package, Store } from 'lucide-react';
+import { BarChart3, Download, CalendarIcon, TrendingUp, Package, Store, Clock } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency, formatDateShort } from '@/lib/formatters';
 import { exportOrdersToExcel, exportDetailedReportToExcel, exportProductSalesToExcel } from '@/lib/excel-export';
@@ -225,6 +226,52 @@ const Reports = () => {
     };
   }, [orders, orderItems]);
 
+  const { data: receivables, isLoading: receivablesLoading } = useReceivables();
+
+  // Aging piutang data
+  const agingData = useMemo(() => {
+    if (!receivables?.length) return { categories: [], byStore: [] };
+
+    const now = new Date();
+    const categories = [
+      { label: '0-30 hari', min: 0, max: 30, amount: 0, count: 0, color: 'hsl(var(--chart-1))' },
+      { label: '31-60 hari', min: 31, max: 60, amount: 0, count: 0, color: 'hsl(var(--chart-2))' },
+      { label: '61-90 hari', min: 61, max: 90, amount: 0, count: 0, color: 'hsl(var(--chart-4))' },
+      { label: '> 90 hari', min: 91, max: Infinity, amount: 0, count: 0, color: 'hsl(var(--destructive))' },
+    ];
+
+    const storeAging: Record<string, { name: string; cat0: number; cat1: number; cat2: number; cat3: number; total: number }> = {};
+
+    receivables
+      .filter(r => r.status !== 'paid')
+      .forEach(r => {
+        const createdDate = new Date(r.created_at);
+        const daysDiff = Math.floor((now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24));
+        const remaining = Number(r.remaining_amount);
+        const storeName = r.store?.name || 'Unknown';
+
+        if (!storeAging[r.store_id]) {
+          storeAging[r.store_id] = { name: storeName, cat0: 0, cat1: 0, cat2: 0, cat3: 0, total: 0 };
+        }
+
+        for (let i = 0; i < categories.length; i++) {
+          if (daysDiff >= categories[i].min && daysDiff <= categories[i].max) {
+            categories[i].amount += remaining;
+            categories[i].count += 1;
+            const catKey = `cat${i}` as 'cat0' | 'cat1' | 'cat2' | 'cat3';
+            storeAging[r.store_id][catKey] += remaining;
+            storeAging[r.store_id].total += remaining;
+            break;
+          }
+        }
+      });
+
+    return {
+      categories,
+      byStore: Object.values(storeAging).sort((a, b) => b.total - a.total),
+    };
+  }, [receivables]);
+
   const isLoading = ordersLoading || itemsLoading;
 
   const handleExportOrders = () => {
@@ -396,6 +443,7 @@ const Reports = () => {
           <TabsTrigger value="orders">Jumlah Order</TabsTrigger>
           <TabsTrigger value="products">Per Produk</TabsTrigger>
           <TabsTrigger value="stores">Per Toko</TabsTrigger>
+          <TabsTrigger value="aging">Aging Piutang</TabsTrigger>
         </TabsList>
 
         <TabsContent value="revenue">
@@ -592,6 +640,110 @@ const Reports = () => {
                           <TableCell className="font-medium">{store.name}</TableCell>
                           <TableCell className="text-right">{store.orders}</TableCell>
                           <TableCell className="text-right">{formatCurrency(store.revenue)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="aging">
+          <div className="space-y-6">
+            {/* Aging Summary Cards */}
+            <div className="grid gap-4 md:grid-cols-4">
+              {agingData.categories.map((cat, i) => (
+                <Card key={i}>
+                  <CardHeader className="flex flex-row items-center justify-between pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">{cat.label}</CardTitle>
+                    <div className="p-2 rounded-lg" style={{ backgroundColor: `${cat.color}20`, color: cat.color }}>
+                      <Clock className="w-4 h-4" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {receivablesLoading ? (
+                      <Skeleton className="h-8 w-24" />
+                    ) : (
+                      <>
+                        <div className="text-2xl font-bold">{formatCurrency(cat.amount)}</div>
+                        <p className="text-xs text-muted-foreground mt-1">{cat.count} faktur</p>
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Aging Pie Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Distribusi Aging Piutang</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {receivablesLoading ? (
+                  <Skeleton className="h-80" />
+                ) : agingData.categories.every(c => c.amount === 0) ? (
+                  <div className="h-80 flex items-center justify-center text-muted-foreground">
+                    Tidak ada piutang yang belum lunas
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={320}>
+                    <PieChart>
+                      <Pie
+                        data={agingData.categories.filter(c => c.amount > 0)}
+                        dataKey="amount"
+                        nameKey="label"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={120}
+                        label={({ label, percent }) => `${label} (${(percent * 100).toFixed(0)}%)`}
+                      >
+                        {agingData.categories.filter(c => c.amount > 0).map((cat, i) => (
+                          <Cell key={i} fill={cat.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value: number) => [formatCurrency(value), 'Jumlah']}
+                        contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Aging by Store Table */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Aging Piutang per Toko</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {receivablesLoading ? (
+                  <Skeleton className="h-40" />
+                ) : agingData.byStore.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-4">Tidak ada data</p>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Toko</TableHead>
+                        <TableHead className="text-right">0-30 hari</TableHead>
+                        <TableHead className="text-right">31-60 hari</TableHead>
+                        <TableHead className="text-right">61-90 hari</TableHead>
+                        <TableHead className="text-right">&gt; 90 hari</TableHead>
+                        <TableHead className="text-right">Total</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {agingData.byStore.map((store, i) => (
+                        <TableRow key={i}>
+                          <TableCell className="font-medium">{store.name}</TableCell>
+                          <TableCell className="text-right">{store.cat0 > 0 ? formatCurrency(store.cat0) : '-'}</TableCell>
+                          <TableCell className="text-right">{store.cat1 > 0 ? formatCurrency(store.cat1) : '-'}</TableCell>
+                          <TableCell className="text-right">{store.cat2 > 0 ? formatCurrency(store.cat2) : '-'}</TableCell>
+                          <TableCell className="text-right text-destructive">{store.cat3 > 0 ? formatCurrency(store.cat3) : '-'}</TableCell>
+                          <TableCell className="text-right font-bold">{formatCurrency(store.total)}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
