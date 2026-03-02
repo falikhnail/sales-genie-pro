@@ -10,6 +10,8 @@ export interface BackupSummary {
   profiles: number;
   salesTargets: number;
   activityLogs: number;
+  receivables: number;
+  payments: number;
   lastUpdated: string | null;
 }
 
@@ -20,6 +22,8 @@ export interface BackupData {
   order_items: any[];
   store_prices: any[];
   sales_targets: any[];
+  receivables: any[];
+  payments: any[];
   exported_at: string;
   version: string;
 }
@@ -29,15 +33,9 @@ export const useBackupSummary = () => {
     queryKey: ['backup-summary'],
     queryFn: async (): Promise<BackupSummary> => {
       const [
-        storesRes,
-        productsRes,
-        ordersRes,
-        orderItemsRes,
-        storePricesRes,
-        profilesRes,
-        salesTargetsRes,
-        activityLogsRes,
-        lastOrderRes
+        storesRes, productsRes, ordersRes, orderItemsRes,
+        storePricesRes, profilesRes, salesTargetsRes, activityLogsRes,
+        receivablesRes, paymentsRes, lastOrderRes
       ] = await Promise.all([
         supabase.from('stores').select('id', { count: 'exact', head: true }),
         supabase.from('products').select('id', { count: 'exact', head: true }),
@@ -47,6 +45,8 @@ export const useBackupSummary = () => {
         supabase.from('profiles').select('id', { count: 'exact', head: true }),
         supabase.from('sales_targets').select('id', { count: 'exact', head: true }),
         supabase.from('activity_logs').select('id', { count: 'exact', head: true }),
+        supabase.from('receivables').select('id', { count: 'exact', head: true }),
+        supabase.from('payments').select('id', { count: 'exact', head: true }),
         supabase.from('orders').select('updated_at').order('updated_at', { ascending: false }).limit(1)
       ]);
 
@@ -59,29 +59,29 @@ export const useBackupSummary = () => {
         profiles: profilesRes.count || 0,
         salesTargets: salesTargetsRes.count || 0,
         activityLogs: activityLogsRes.count || 0,
+        receivables: receivablesRes.count || 0,
+        payments: paymentsRes.count || 0,
         lastUpdated: lastOrderRes.data?.[0]?.updated_at || null
       };
     },
-    refetchInterval: 30000 // Refresh every 30 seconds
+    refetchInterval: 30000
   });
 };
 
 export const useExportBackup = () => {
   const exportAllData = async (): Promise<BackupData> => {
     const [
-      storesRes,
-      productsRes,
-      ordersRes,
-      orderItemsRes,
-      storePricesRes,
-      salesTargetsRes
+      storesRes, productsRes, ordersRes, orderItemsRes,
+      storePricesRes, salesTargetsRes, receivablesRes, paymentsRes
     ] = await Promise.all([
       supabase.from('stores').select('*'),
       supabase.from('products').select('*'),
       supabase.from('orders').select('*'),
       supabase.from('order_items').select('*'),
       supabase.from('store_prices').select('*'),
-      supabase.from('sales_targets').select('*')
+      supabase.from('sales_targets').select('*'),
+      supabase.from('receivables').select('*'),
+      supabase.from('payments').select('*')
     ]);
 
     return {
@@ -91,8 +91,10 @@ export const useExportBackup = () => {
       order_items: orderItemsRes.data || [],
       store_prices: storePricesRes.data || [],
       sales_targets: salesTargetsRes.data || [],
+      receivables: receivablesRes.data || [],
+      payments: paymentsRes.data || [],
       exported_at: new Date().toISOString(),
-      version: '1.0'
+      version: '2.0'
     };
   };
 

@@ -24,7 +24,9 @@ import {
   Activity,
   FileJson,
   FileSpreadsheet,
-  Loader2
+  Loader2,
+  CreditCard,
+  Banknote
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -66,6 +68,8 @@ const Backup = () => {
     { label: 'Order', value: summary?.orders || 0, icon: ShoppingCart, color: 'text-purple-500' },
     { label: 'Item Order', value: summary?.orderItems || 0, icon: FileText, color: 'text-orange-500' },
     { label: 'Harga Khusus', value: summary?.storePrices || 0, icon: DollarSign, color: 'text-yellow-500' },
+    { label: 'Piutang', value: summary?.receivables || 0, icon: CreditCard, color: 'text-cyan-500' },
+    { label: 'Pembayaran', value: summary?.payments || 0, icon: Banknote, color: 'text-emerald-500' },
     { label: 'Profil', value: summary?.profiles || 0, icon: Users, color: 'text-pink-500' },
     { label: 'Target', value: summary?.salesTargets || 0, icon: Target, color: 'text-indigo-500' },
     { label: 'Log Aktivitas', value: summary?.activityLogs || 0, icon: Activity, color: 'text-red-500' },
@@ -119,7 +123,7 @@ const Backup = () => {
     setImportProgress(0);
 
     try {
-      const steps = 6;
+      const steps = 8;
       let currentStep = 0;
 
       // Import stores
@@ -171,6 +175,24 @@ const Backup = () => {
       if (importPreview.sales_targets.length > 0) {
         for (const target of importPreview.sales_targets) {
           await supabase.from('sales_targets').upsert(target, { onConflict: 'id' });
+        }
+      }
+      currentStep++;
+      setImportProgress((currentStep / steps) * 100);
+
+      // Import receivables
+      if (importPreview.receivables?.length > 0) {
+        for (const rec of importPreview.receivables) {
+          await supabase.from('receivables').upsert(rec, { onConflict: 'id' });
+        }
+      }
+      currentStep++;
+      setImportProgress((currentStep / steps) * 100);
+
+      // Import payments
+      if (importPreview.payments?.length > 0) {
+        for (const pay of importPreview.payments) {
+          await supabase.from('payments').upsert(pay, { onConflict: 'id' });
         }
       }
       currentStep++;
@@ -462,6 +484,14 @@ const Backup = () => {
                 <div className="p-3 rounded-lg bg-muted/50">
                   <p className="text-sm font-medium">{importPreview.store_prices.length}</p>
                   <p className="text-xs text-muted-foreground">Harga Khusus</p>
+                </div>
+                <div className="p-3 rounded-lg bg-muted/50">
+                  <p className="text-sm font-medium">{importPreview.receivables?.length || 0}</p>
+                  <p className="text-xs text-muted-foreground">Piutang</p>
+                </div>
+                <div className="p-3 rounded-lg bg-muted/50">
+                  <p className="text-sm font-medium">{importPreview.payments?.length || 0}</p>
+                  <p className="text-xs text-muted-foreground">Pembayaran</p>
                 </div>
                 <div className="p-3 rounded-lg bg-muted/50">
                   <p className="text-sm font-medium">{importPreview.sales_targets.length}</p>
