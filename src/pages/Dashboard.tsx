@@ -7,8 +7,9 @@ import { useStores } from '@/hooks/useStores';
 import { useProducts } from '@/hooks/useProducts';
 import { useOrders } from '@/hooks/useOrders';
 import { useSalesTarget } from '@/hooks/useSalesTargets';
+import { useReceivables } from '@/hooks/useReceivables';
 import { useAuth } from '@/contexts/AuthContext';
-import { Store, Package, ShoppingCart, TrendingUp, Target, ArrowRight } from 'lucide-react';
+import { Store, Package, ShoppingCart, TrendingUp, Target, ArrowRight, AlertTriangle, CreditCard } from 'lucide-react';
 import { formatCurrency, formatDateShort } from '@/lib/formatters';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -19,10 +20,19 @@ const Dashboard = () => {
   const { data: stores, isLoading: storesLoading } = useStores();
   const { data: products, isLoading: productsLoading } = useProducts();
   const { data: orders, isLoading: ordersLoading } = useOrders();
+  const { data: receivables, isLoading: receivablesLoading } = useReceivables();
 
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1;
   const { data: currentTarget, isLoading: targetLoading } = useSalesTarget(currentYear, currentMonth);
+
+  // Receivables summary
+  const totalReceivable = receivables?.reduce((sum, r) => sum + Number(r.remaining_amount), 0) || 0;
+  const overdueReceivables = receivables?.filter(r => {
+    if (!r.due_date || r.status === 'paid') return false;
+    return new Date(r.due_date) < new Date();
+  }) || [];
+  const overdueAmount = overdueReceivables.reduce((sum, r) => sum + Number(r.remaining_amount), 0);
 
   // Calculate current month's sales
   const { data: monthSales, isLoading: monthSalesLoading } = useQuery({
@@ -177,6 +187,56 @@ const Dashboard = () => {
                     Sisa: {formatCurrency(Math.max(0, targetAmount - (monthSales || 0)))}
                   </span>
                 </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Receivables Summary */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CreditCard className="w-5 h-5 text-primary" />
+            <CardTitle>Ringkasan Piutang</CardTitle>
+          </div>
+          <Link to="/receivables">
+            <Button variant="ghost" size="sm">
+              Lihat Semua <ArrowRight className="w-4 h-4 ml-1" />
+            </Button>
+          </Link>
+        </CardHeader>
+        <CardContent>
+          {receivablesLoading ? (
+            <Skeleton className="h-24" />
+          ) : (
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="p-4 bg-muted/30 rounded-lg">
+                <p className="text-sm text-muted-foreground">Total Sisa Piutang</p>
+                <p className="text-2xl font-bold">{formatCurrency(totalReceivable)}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {receivables?.filter(r => r.status !== 'paid').length || 0} faktur belum lunas
+                </p>
+              </div>
+              <div className="p-4 bg-muted/30 rounded-lg">
+                <p className="text-sm text-muted-foreground flex items-center gap-1">
+                  <AlertTriangle className="w-3 h-3 text-destructive" /> Jatuh Tempo
+                </p>
+                <p className={cn("text-2xl font-bold", overdueAmount > 0 ? "text-destructive" : "")}>
+                  {formatCurrency(overdueAmount)}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {overdueReceivables.length} faktur jatuh tempo
+                </p>
+              </div>
+              <div className="p-4 bg-muted/30 rounded-lg">
+                <p className="text-sm text-muted-foreground">Total Terbayar</p>
+                <p className="text-2xl font-bold text-chart-1">
+                  {formatCurrency(receivables?.reduce((sum, r) => sum + Number(r.paid_amount), 0) || 0)}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {receivables?.filter(r => r.status === 'paid').length || 0} faktur lunas
+                </p>
               </div>
             </div>
           )}
