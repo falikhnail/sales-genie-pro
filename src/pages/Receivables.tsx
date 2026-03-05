@@ -386,7 +386,31 @@ const Receivables = () => {
                                 )}
                               </div>
                             </TableCell>
-                            <TableCell className="text-sm">{r.due_date ? formatDateShort(r.due_date) : '-'}</TableCell>
+                            <TableCell className="text-sm">
+                              {editingDueDateId === r.id ? (
+                                <div className="flex items-center gap-1">
+                                  <Input
+                                    type="date"
+                                    value={editDueDateValue}
+                                    onChange={(e) => setEditDueDateValue(e.target.value)}
+                                    className="h-7 w-[130px] text-xs"
+                                  />
+                                  <Button size="sm" variant="default" className="h-7 px-2 text-xs" onClick={() => {
+                                    updateDueDate.mutate({ receivableId: r.id, dueDate: editDueDateValue || null });
+                                    setEditingDueDateId(null);
+                                  }}>OK</Button>
+                                  <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => setEditingDueDateId(null)}>×</Button>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-1 cursor-pointer group" onClick={() => {
+                                  setEditingDueDateId(r.id);
+                                  setEditDueDateValue(r.due_date || '');
+                                }}>
+                                  <span>{r.due_date ? formatDateShort(r.due_date) : <span className="text-muted-foreground italic">Belum diatur</span>}</span>
+                                  <CalendarDays className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                                </div>
+                              )}
+                            </TableCell>
                             <TableCell>
                               <div className="flex gap-1">
                                 <Tooltip>
