@@ -201,6 +201,28 @@ export const useAddPayment = () => {
   });
 };
 
+export const useUpdateDueDate = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ receivableId, dueDate }: { receivableId: string; dueDate: string | null }) => {
+      const { error } = await supabase
+        .from('receivables')
+        .update({ due_date: dueDate })
+        .eq('id', receivableId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['receivables'] });
+      toast({ title: 'Tanggal jatuh tempo berhasil diperbarui' });
+    },
+    onError: (error: any) => {
+      toast({ title: 'Gagal memperbarui jatuh tempo', description: error.message, variant: 'destructive' });
+    },
+  });
+};
+
 export const useDeleteReceivable = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
