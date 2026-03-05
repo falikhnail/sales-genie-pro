@@ -17,7 +17,7 @@ import { CurrencyInput } from '@/components/ui/currency-input';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Plus, Wallet, AlertCircle, CheckCircle, Clock, Store, CreditCard, Eye, Trash2, MessageCircle, Search, AlertOctagon, FileText } from 'lucide-react';
+import { Plus, Wallet, AlertCircle, CheckCircle, Clock, Store, CreditCard, Eye, Trash2, MessageCircle, Search, AlertOctagon, FileText, CalendarDays } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 
@@ -47,6 +47,7 @@ const Receivables = () => {
   const createReceivable = useCreateReceivable();
   const addPayment = useAddPayment();
   const deleteReceivable = useDeleteReceivable();
+  const updateDueDate = useUpdateDueDate();
 
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
