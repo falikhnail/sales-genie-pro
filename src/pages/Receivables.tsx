@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useReceivables, useStoreSummary, useCreateReceivable, useAddPayment, usePayments, useDeleteReceivable } from '@/hooks/useReceivables';
+import { useReceivables, useStoreSummary, useCreateReceivable, useAddPayment, usePayments, useDeleteReceivable, useUpdateDueDate } from '@/hooks/useReceivables';
 import { useStores } from '@/hooks/useStores';
 import { formatCurrency, formatDateShort } from '@/lib/formatters';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
