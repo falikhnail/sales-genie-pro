@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useReceivables, useStoreSummary, useCreateReceivable, useAddPayment, usePayments, useDeleteReceivable } from '@/hooks/useReceivables';
+import { useReceivables, useStoreSummary, useCreateReceivable, useAddPayment, usePayments, useDeleteReceivable, useUpdateDueDate } from '@/hooks/useReceivables';
 import { useStores } from '@/hooks/useStores';
 import { formatCurrency, formatDateShort } from '@/lib/formatters';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,7 +17,7 @@ import { CurrencyInput } from '@/components/ui/currency-input';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Plus, Wallet, AlertCircle, CheckCircle, Clock, Store, CreditCard, Eye, Trash2, MessageCircle, Search, AlertOctagon, FileText } from 'lucide-react';
+import { Plus, Wallet, AlertCircle, CheckCircle, Clock, Store, CreditCard, Eye, Trash2, MessageCircle, Search, AlertOctagon, FileText, CalendarDays } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 
@@ -47,11 +47,14 @@ const Receivables = () => {
   const createReceivable = useCreateReceivable();
   const addPayment = useAddPayment();
   const deleteReceivable = useDeleteReceivable();
+  const updateDueDate = useUpdateDueDate();
 
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [editingDueDateId, setEditingDueDateId] = useState<string | null>(null);
+  const [editDueDateValue, setEditDueDateValue] = useState('');
   const [selectedReceivable, setSelectedReceivable] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterStore, setFilterStore] = useState<string>('all');
@@ -383,7 +386,31 @@ const Receivables = () => {
                                 )}
                               </div>
                             </TableCell>
-                            <TableCell className="text-sm">{r.due_date ? formatDateShort(r.due_date) : '-'}</TableCell>
+                            <TableCell className="text-sm">
+                              {editingDueDateId === r.id ? (
+                                <div className="flex items-center gap-1">
+                                  <Input
+                                    type="date"
+                                    value={editDueDateValue}
+                                    onChange={(e) => setEditDueDateValue(e.target.value)}
+                                    className="h-7 w-[130px] text-xs"
+                                  />
+                                  <Button size="sm" variant="default" className="h-7 px-2 text-xs" onClick={() => {
+                                    updateDueDate.mutate({ receivableId: r.id, dueDate: editDueDateValue || null });
+                                    setEditingDueDateId(null);
+                                  }}>OK</Button>
+                                  <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => setEditingDueDateId(null)}>×</Button>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-1 cursor-pointer group" onClick={() => {
+                                  setEditingDueDateId(r.id);
+                                  setEditDueDateValue(r.due_date || '');
+                                }}>
+                                  <span>{r.due_date ? formatDateShort(r.due_date) : <span className="text-muted-foreground italic">Belum diatur</span>}</span>
+                                  <CalendarDays className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                                </div>
+                              )}
+                            </TableCell>
                             <TableCell>
                               <div className="flex gap-1">
                                 <Tooltip>
