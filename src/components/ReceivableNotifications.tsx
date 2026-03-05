@@ -78,7 +78,12 @@ const ReceivableNotifications = () => {
     const storeWhatsapp = stores.find(s => s.id === n.store_id)?.whatsapp;
     const message = generateReminderMessage(storeName, n.invoice_number, Number(n.remaining_amount), n.due_date);
     const encodedMessage = encodeURIComponent(message);
-    const phone = storeWhatsapp ? storeWhatsapp.replace(/[^0-9]/g, '') : '';
+    let phone = storeWhatsapp ? storeWhatsapp.replace(/[^0-9]/g, '') : '';
+    if (phone.startsWith('0')) {
+      phone = '62' + phone.substring(1);
+    } else if (phone && !phone.startsWith('62')) {
+      phone = '62' + phone;
+    }
     const url = phone ? `https://wa.me/${phone}?text=${encodedMessage}` : `https://wa.me/?text=${encodedMessage}`;
     window.open(url, '_blank');
   };
