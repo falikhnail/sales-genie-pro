@@ -24,7 +24,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Pencil, Trash2, Store as StoreIcon, Phone, MapPin, User } from 'lucide-react';
+import { Plus, Pencil, Trash2, Store as StoreIcon, Phone, MapPin, User, Search } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const Stores = () => {
@@ -121,6 +121,20 @@ const Stores = () => {
     setDeleteName(store.name);
   };
 
+  const [storeSearch, setStoreSearch] = useState('');
+
+  const filteredStores = stores?.filter((store) => {
+    if (!storeSearch) return true;
+    const q = storeSearch.toLowerCase();
+    return (
+      store.name.toLowerCase().includes(q) ||
+      store.contact_person?.toLowerCase().includes(q) ||
+      store.address?.toLowerCase().includes(q) ||
+      store.phone?.includes(q) ||
+      store.whatsapp?.includes(q)
+    );
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -207,6 +221,19 @@ const Stores = () => {
         </Dialog>
       </div>
 
+      {/* Search */}
+      {stores && stores.length > 0 && (
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Cari toko, pemilik, alamat..."
+            value={storeSearch}
+            onChange={(e) => setStoreSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+      )}
+
       {isLoading ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {[...Array(6)].map((_, i) => (
@@ -226,7 +253,7 @@ const Stores = () => {
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {stores?.map((store) => (
+          {filteredStores?.map((store) => (
             <Card key={store.id} className="hover:shadow-md transition-shadow">
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between">

@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import { CurrencyInput } from '@/components/ui/currency-input';
@@ -185,12 +186,14 @@ const Receivables = () => {
               <div className="space-y-4">
                 <div>
                   <Label>Toko</Label>
-                  <Select value={newStoreId} onValueChange={setNewStoreId}>
-                    <SelectTrigger><SelectValue placeholder="Pilih toko" /></SelectTrigger>
-                    <SelectContent>
-                      {stores.map((s) => (<SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>))}
-                    </SelectContent>
-                  </Select>
+                  <SearchableSelect
+                    options={stores.map((s) => ({ value: s.id, label: s.name, description: s.address || undefined }))}
+                    value={newStoreId}
+                    onValueChange={setNewStoreId}
+                    placeholder="Pilih toko"
+                    searchPlaceholder="Cari toko..."
+                    emptyText="Toko tidak ditemukan"
+                  />
                 </div>
                 <div>
                   <Label>Jumlah Piutang</Label>
