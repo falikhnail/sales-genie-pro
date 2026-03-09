@@ -24,7 +24,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Pencil, Trash2, Store as StoreIcon, Phone, MapPin, User } from 'lucide-react';
+import { Plus, Pencil, Trash2, Store as StoreIcon, Phone, MapPin, User, Search } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const Stores = () => {

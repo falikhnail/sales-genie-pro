@@ -186,12 +186,14 @@ const Receivables = () => {
               <div className="space-y-4">
                 <div>
                   <Label>Toko</Label>
-                  <Select value={newStoreId} onValueChange={setNewStoreId}>
-                    <SelectTrigger><SelectValue placeholder="Pilih toko" /></SelectTrigger>
-                    <SelectContent>
-                      {stores.map((s) => (<SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>))}
-                    </SelectContent>
-                  </Select>
+                  <SearchableSelect
+                    options={stores.map((s) => ({ value: s.id, label: s.name, description: s.address || undefined }))}
+                    value={newStoreId}
+                    onValueChange={setNewStoreId}
+                    placeholder="Pilih toko"
+                    searchPlaceholder="Cari toko..."
+                    emptyText="Toko tidak ditemukan"
+                  />
                 </div>
                 <div>
                   <Label>Jumlah Piutang</Label>
