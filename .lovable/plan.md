@@ -1,40 +1,45 @@
 
 
-## Plan: Notifikasi Otomatis Piutang 30+ Hari & Perbaikan Tampilan Piutang
+## Plan: Update Aplikasi - Fase Berikutnya
 
-### 1. Notifikasi Otomatis untuk Piutang Jatuh Tempo > 30 Hari
+### 1. Dashboard Analytics Lebih Lengkap
+- Grafik tren penjualan bulanan (line chart)
+- Grafik piutang outstanding vs terbayar per bulan
+- Top 5 toko dengan piutang terbesar (bar chart)
+- Perbandingan target vs realisasi penjualan (area chart)
+- Card ringkasan: total order bulan ini, rata-rata nilai order, growth vs bulan lalu
 
-**Pendekatan:** Menambahkan tab/section khusus di notifikasi header yang menampilkan piutang kritis (> 30 hari overdue) dengan highlight merah dan opsi kirim WhatsApp langsung dari notifikasi. Juga menambahkan banner peringatan di halaman Piutang.
+### 2. Notifikasi WhatsApp Otomatis Terjadwal
+- Edge function yang dijalankan via cron job harian
+- Cek piutang yang mendekati/melewati jatuh tempo
+- Kirim reminder otomatis ke WhatsApp toko via WhatsApp API
+- Log pengiriman notifikasi di database
+- Pengaturan jadwal & template pesan di UI
 
-- **ReceivableNotifications.tsx**: Tambahkan kategori baru "Kritis (> 30 hari)" dengan warna dan ikon berbeda (AlertOctagon). Notifikasi ini akan tampil terpisah di bagian atas popover dengan background merah muda. Tambahkan tombol WhatsApp langsung dari item notifikasi.
-- **Receivables.tsx**: Tambahkan banner alert di atas halaman jika ada piutang > 30 hari overdue, menampilkan jumlah dan total nominal. Tambahkan summary card baru "Jatuh Tempo > 30 Hari" di baris summary.
+### 3. Tampilan Mobile Lebih Responsif
+- Optimasi sidebar untuk mobile (drawer/sheet)
+- Tabel piutang & order responsive (card view di mobile)
+- Form input yang nyaman di layar kecil
+- Bottom navigation untuk akses cepat fitur utama
+- Touch-friendly buttons dan spacing
 
-### 2. Perbaikan Tampilan Halaman Piutang
+### 4. Retur / Pengembalian Barang
+- Tabel baru `returns` untuk mencatat retur
+- Link ke order & piutang terkait
+- Otomatis kurangi piutang saat retur disetujui
+- Halaman retur dengan status tracking
+- Laporan retur per toko
 
-Redesign visual untuk tampilan lebih modern dan nyaman:
+### 5. Histori Kunjungan Sales
+- Tabel baru `visits` untuk mencatat kunjungan
+- Form check-in dengan catatan & foto
+- Integrasi GPS untuk lokasi kunjungan
+- Timeline kunjungan per toko
+- Dashboard kunjungan sales
 
-- **Summary Cards**: Tambahkan gradient subtle pada ikon, spacing lebih baik, dan animasi hover ringan
-- **Tabel Piutang**: 
-  - Baris dengan piutang overdue diberi background merah muda tipis
-  - Baris overdue > 30 hari diberi highlight lebih kuat
-  - Tombol aksi diberi tooltip dan spacing lebih baik
-  - Tambahkan progress bar kecil di setiap baris (paid vs total)
-- **Tab Ringkasan Toko**: Perbaiki card layout dengan visual yang lebih clean, tambahkan badge untuk jumlah overdue per toko
-- **Filter**: Tambahkan search input untuk cari invoice/toko, perbaiki layout filter agar lebih compact
-- **Detail Dialog**: Perbaiki layout detail dengan card-style sections yang lebih rapi
-- **Empty State**: Tambahkan ilustrasi/ikon besar untuk empty state
-
-### File yang Diubah
-
-| File | Perubahan |
-|------|-----------|
-| `src/components/ReceivableNotifications.tsx` | Tambah kategori kritis 30+ hari, tombol WhatsApp di notifikasi, visual update |
-| `src/pages/Receivables.tsx` | Banner alert overdue 30+, redesign summary cards, perbaikan tabel & filter, search input, progress bar per row, highlight overdue rows |
-
-### Detail Teknis
-
-- Perhitungan overdue 30+ hari menggunakan `differenceInDays(today, dueDate) > 30`
-- Tidak perlu perubahan database - semua kalkulasi client-side
-- WhatsApp reminder di notifikasi menggunakan fungsi `generateReminderMessage` yang sudah ada
-- Styling menggunakan Tailwind classes yang konsisten dengan design system (primary green, destructive red)
-
+### Urutan Implementasi yang Disarankan
+1. Dashboard Analytics (foundation untuk monitoring)
+2. Tampilan Mobile Responsif (UX improvement)
+3. Retur / Pengembalian Barang (business logic)
+4. Histori Kunjungan Sales (field operation)
+5. Notifikasi WhatsApp Terjadwal (automation - perlu WhatsApp API)
