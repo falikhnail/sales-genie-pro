@@ -121,6 +121,20 @@ const Stores = () => {
     setDeleteName(store.name);
   };
 
+  const [storeSearch, setStoreSearch] = useState('');
+
+  const filteredStores = stores?.filter((store) => {
+    if (!storeSearch) return true;
+    const q = storeSearch.toLowerCase();
+    return (
+      store.name.toLowerCase().includes(q) ||
+      store.contact_person?.toLowerCase().includes(q) ||
+      store.address?.toLowerCase().includes(q) ||
+      store.phone?.includes(q) ||
+      store.whatsapp?.includes(q)
+    );
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
