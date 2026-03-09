@@ -9,11 +9,14 @@ import { useOrders } from '@/hooks/useOrders';
 import { useSalesTarget } from '@/hooks/useSalesTargets';
 import { useReceivables } from '@/hooks/useReceivables';
 import { useAuth } from '@/contexts/AuthContext';
-import { Store, Package, ShoppingCart, TrendingUp, Target, ArrowRight, AlertTriangle, CreditCard } from 'lucide-react';
+import { Store, Package, ShoppingCart, TrendingUp, Target, ArrowRight, AlertTriangle, CreditCard, BarChart3 } from 'lucide-react';
 import { formatCurrency, formatDateShort } from '@/lib/formatters';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { SalesTrendChart } from '@/components/dashboard/SalesTrendChart';
+import { ReceivablesTrendChart } from '@/components/dashboard/ReceivablesTrendChart';
+import { TopStoresChart } from '@/components/dashboard/TopStoresChart';
 
 const Dashboard = () => {
   const { isAdmin } = useAuth();
