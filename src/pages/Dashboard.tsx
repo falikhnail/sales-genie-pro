@@ -246,6 +246,14 @@ const Dashboard = () => {
         </CardContent>
       </Card>
 
+      {/* Analytics Charts */}
+      <div className="grid gap-6 md:grid-cols-2">
+        <SalesTrendChart />
+        <ReceivablesTrendChart />
+      </div>
+
+      <TopStoresChart />
+
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
