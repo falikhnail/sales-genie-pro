@@ -253,7 +253,7 @@ const Stores = () => {
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {stores?.map((store) => (
+          {filteredStores?.map((store) => (
             <Card key={store.id} className="hover:shadow-md transition-shadow">
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between">
