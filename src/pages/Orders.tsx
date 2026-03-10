@@ -57,6 +57,7 @@ import { formatCurrency, formatDate, formatDateTime, formatPhone } from '@/lib/f
 
 const Orders = () => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const { data: orders, isLoading } = useOrders();
   const { data: stores } = useStores();
   const updateWhatsappStatus = useUpdateOrderWhatsappStatus();
