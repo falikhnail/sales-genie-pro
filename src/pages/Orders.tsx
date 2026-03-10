@@ -227,163 +227,58 @@ const Orders = () => {
               <History className="w-12 h-12 text-muted-foreground mb-4" />
               <p className="text-muted-foreground">Belum ada riwayat order</p>
             </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>No. Order</TableHead>
-                  <TableHead>Toko</TableHead>
-                  <TableHead>Total</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>WhatsApp</TableHead>
-                  <TableHead>Tanggal</TableHead>
-                  <TableHead className="text-right">Aksi</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredOrders?.map((order) => (
-                  <TableRow key={order.id}>
-                    <TableCell className="font-medium">{order.order_number}</TableCell>
-                    <TableCell>{order.store?.name}</TableCell>
-                    <TableCell>{formatCurrency(Number(order.total_amount))}</TableCell>
-                    <TableCell>
-                      <Badge variant={getStatusVariant(order.status)}>
-                        {getStatusLabel(order.status)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col gap-1">
-                        <Badge variant={order.whatsapp_sent ? 'default' : 'outline'}>
-                          {order.whatsapp_sent ? 'Terkirim' : 'Belum'}
-                        </Badge>
-                        {order.whatsapp_sent_at && (
-                          <span className="text-xs text-muted-foreground">
-                            {formatDateTime(order.whatsapp_sent_at)}
-                          </span>
-                        )}
+          ) : isMobile ? (
+            <div className="space-y-3">
+              {filteredOrders?.map((order) => (
+                <Card key={order.id} className="overflow-hidden">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <p className="font-semibold text-sm text-foreground">{order.order_number}</p>
+                        <p className="text-xs text-muted-foreground">{order.store?.name}</p>
                       </div>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {formatDate(order.created_at)}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex justify-end gap-1">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => setSelectedOrder(order)}
-                            >
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Lihat Detail</TooltipContent>
-                        </Tooltip>
+                      <div className="flex items-center gap-1">
+                        <Badge variant={getStatusVariant(order.status)} className="text-xs">
+                          {getStatusLabel(order.status)}
+                        </Badge>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
+                            <Button variant="ghost" size="icon" className="h-7 w-7">
                               <MoreHorizontal className="w-4 h-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => setSelectedOrder(order)}>
+                              <Eye className="w-4 h-4 mr-2" /> Lihat Detail
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleEditOrder(order.id)}>
-                              <Pencil className="w-4 h-4 mr-2" />
-                              Edit Order
+                              <Pencil className="w-4 h-4 mr-2" /> Edit Order
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleRepeatOrder(order.id)}>
-                              <Copy className="w-4 h-4 mr-2" />
-                              Repeat Order
+                              <Copy className="w-4 h-4 mr-2" /> Repeat Order
                             </DropdownMenuItem>
                             {order.store?.whatsapp && (
                               <DropdownMenuItem onClick={() => handleSendWhatsAppFromTable(order)}>
                                 <Send className="w-4 h-4 mr-2" />
-                                {order.whatsapp_sent ? 'Kirim Ulang WhatsApp' : 'Kirim WhatsApp'}
+                                {order.whatsapp_sent ? 'Kirim Ulang WA' : 'Kirim WhatsApp'}
                               </DropdownMenuItem>
                             )}
-                            <DropdownMenuItem onClick={() => handleStatusChange(order.id, 'pending')}>
-                              <Clock className="w-4 h-4 mr-2" />
-                              Set Pending
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleStatusChange(order.id, 'sent')}>
-                              <CheckCircle className="w-4 h-4 mr-2" />
-                              Set Terkirim
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleStatusChange(order.id, 'completed')}>
-                              <PackageCheck className="w-4 h-4 mr-2" />
-                              Set Selesai
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleStatusChange(order.id, 'cancelled')}>
-                              <XCircle className="w-4 h-4 mr-2" />
-                              Set Dibatalkan
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              onClick={() => setOrderToDelete(order.id)}
-                              className="text-destructive focus:text-destructive"
-                            >
-                              <Trash2 className="w-4 h-4 mr-2" />
-                              Hapus Order
+                            <DropdownMenuItem onClick={() => setOrderToDelete(order.id)} className="text-destructive focus:text-destructive">
+                              <Trash2 className="w-4 h-4 mr-2" /> Hapus
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
-
-      <Dialog open={!!selectedOrder} onOpenChange={() => setSelectedOrder(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Detail Order {selectedOrder?.order_number}</DialogTitle>
-          </DialogHeader>
-          
-          {selectedOrder && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4 p-4 bg-muted/30 rounded-lg">
-                <div>
-                  <p className="text-sm text-muted-foreground">Toko</p>
-                  <p className="font-medium">{selectedOrder.store?.name}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Tanggal</p>
-                  <p className="font-medium">{formatDate(selectedOrder.created_at)}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Total</p>
-                  <p className="font-medium">{formatCurrency(Number(selectedOrder.total_amount))}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">WhatsApp</p>
-                  <div className="flex flex-col gap-1">
-                    <Badge variant={selectedOrder.whatsapp_sent ? 'default' : 'outline'}>
-                      {selectedOrder.whatsapp_sent ? 'Terkirim' : 'Belum Terkirim'}
-                    </Badge>
-                    {selectedOrder.whatsapp_sent_at && (
-                      <span className="text-xs text-muted-foreground">
-                        Terakhir: {formatDateTime(selectedOrder.whatsapp_sent_at)}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {selectedOrder.notes && (
-                <div className="p-4 bg-muted/30 rounded-lg">
-                  <p className="text-sm text-muted-foreground mb-1">Catatan</p>
-                  <p>{selectedOrder.notes}</p>
-                </div>
-              )}
-
-              <div>
-                <h4 className="font-medium mb-2">Item Pesanan</h4>
-                {itemsLoading ? (
-                  <Skeleton className="h-32" />
-                ) : (
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-bold text-foreground">{formatCurrency(Number(order.total_amount))}</span>
+                      <span className="text-xs text-muted-foreground">{formatDate(order.created_at)}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
                   <Table>
                     <TableHeader>
                       <TableRow>
