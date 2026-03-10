@@ -19,6 +19,7 @@ import { formatCurrency, formatDateShort } from '@/lib/formatters';
 import { Plus, Trash2, RotateCcw, Search } from 'lucide-react';
 
 const Returns = () => {
+  const isMobile = useIsMobile();
   const { isAdmin } = useAuth();
   const { data: returns, isLoading } = useReturns();
   const { data: receivables } = useReceivables();
