@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { supabase } from '@/integrations/supabase/client';
 import { useOrders, useOrderItems, useUpdateOrderWhatsappStatus, useUpdateOrderStatus, useDeleteOrder } from '@/hooks/useOrders';
 import { useStores } from '@/hooks/useStores';
