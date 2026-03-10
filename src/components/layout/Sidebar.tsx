@@ -35,6 +35,7 @@ const Sidebar = () => {
     { path: '/orders/new', label: 'Order Baru', icon: ShoppingCart },
     { path: '/orders', label: 'Riwayat Order', icon: ClipboardList },
     { path: '/receivables', label: 'Piutang', icon: Wallet },
+    { path: '/returns', label: 'Retur Barang', icon: RotateCcw },
     { path: '/targets', label: 'Target', icon: Target },
     { path: '/reports', label: 'Laporan', icon: BarChart3 },
     { path: '/backup', label: 'Backup Data', icon: Database, adminOnly: true },
