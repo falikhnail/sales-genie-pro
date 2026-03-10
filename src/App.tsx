@@ -22,6 +22,7 @@ import Targets from "./pages/Targets";
 import ActivityLogs from "./pages/ActivityLogs";
 import Backup from "./pages/Backup";
 import Receivables from "./pages/Receivables";
+import Returns from "./pages/Returns";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();

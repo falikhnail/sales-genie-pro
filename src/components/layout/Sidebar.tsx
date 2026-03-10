@@ -17,6 +17,7 @@ import {
   GitCompare,
   Database,
   Wallet,
+  RotateCcw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
