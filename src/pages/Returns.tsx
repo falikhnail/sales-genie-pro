@@ -287,6 +287,47 @@ const Returns = () => {
               <RotateCcw className="w-12 h-12 mx-auto mb-3 opacity-30" />
               <p>Belum ada data retur</p>
             </div>
+          ) : isMobile ? (
+            <div className="space-y-3">
+              {filteredReturns.map(r => (
+                <Card key={r.id} className="overflow-hidden">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <Badge variant="outline" className="text-xs mb-1">{r.receivable?.invoice_number || '-'}</Badge>
+                        <p className="font-medium text-sm text-foreground">{r.store?.name || '-'}</p>
+                      </div>
+                      {isAdmin && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-7 w-7">
+                              <Trash2 className="w-4 h-4 text-destructive" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Hapus Retur?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Piutang akan dikembalikan sebesar {formatCurrency(r.amount)}.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Batal</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => deleteReturn.mutate(r.id)}>Hapus</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
+                    </div>
+                    {r.reason && <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{r.reason}</p>}
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">{formatDateShort(r.created_at)}</span>
+                      <span className="font-semibold text-sm text-destructive">-{formatCurrency(r.amount)}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           ) : (
             <Table>
               <TableHeader>
