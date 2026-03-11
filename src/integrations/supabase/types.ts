@@ -523,6 +523,53 @@ export type Database = {
         }
         Relationships: []
       }
+      visits: {
+        Row: {
+          check_in_time: string
+          check_out_time: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          store_id: string
+          updated_at: string
+          user_id: string
+          visit_date: string
+          visit_type: string
+        }
+        Insert: {
+          check_in_time?: string
+          check_out_time?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          store_id: string
+          updated_at?: string
+          user_id: string
+          visit_date?: string
+          visit_type?: string
+        }
+        Update: {
+          check_in_time?: string
+          check_out_time?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          store_id?: string
+          updated_at?: string
+          user_id?: string
+          visit_date?: string
+          visit_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visits_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
