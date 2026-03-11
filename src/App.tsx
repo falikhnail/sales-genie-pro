@@ -23,6 +23,7 @@ import ActivityLogs from "./pages/ActivityLogs";
 import Backup from "./pages/Backup";
 import Receivables from "./pages/Receivables";
 import Returns from "./pages/Returns";
+import Visits from "./pages/Visits";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -52,6 +53,7 @@ const App = () => (
             <Route path="/activity-logs" element={<MainLayout><ActivityLogs /></MainLayout>} />
             <Route path="/receivables" element={<MainLayout><Receivables /></MainLayout>} />
             <Route path="/returns" element={<MainLayout><Returns /></MainLayout>} />
+            <Route path="/visits" element={<MainLayout><Visits /></MainLayout>} />
             <Route path="/backup" element={<MainLayout><Backup /></MainLayout>} />
             <Route path="*" element={<NotFound />} />
           </Routes>

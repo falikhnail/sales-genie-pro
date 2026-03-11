@@ -19,6 +19,7 @@ import {
   Database,
   Wallet,
   RotateCcw,
+  MapPin,
   Menu,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -36,6 +37,7 @@ const menuItems = [
   { path: '/orders', label: 'Riwayat Order', icon: ClipboardList },
   { path: '/receivables', label: 'Piutang', icon: Wallet },
   { path: '/returns', label: 'Retur Barang', icon: RotateCcw },
+  { path: '/visits', label: 'Kunjungan', icon: MapPin },
   { path: '/targets', label: 'Target', icon: Target },
   { path: '/reports', label: 'Laporan', icon: BarChart3 },
   { path: '/backup', label: 'Backup Data', icon: Database, adminOnly: true },
