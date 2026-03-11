@@ -19,6 +19,7 @@ import {
   Database,
   Wallet,
   RotateCcw,
+  MapPin,
   Menu,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';

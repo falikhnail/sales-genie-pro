@@ -23,6 +23,7 @@ import ActivityLogs from "./pages/ActivityLogs";
 import Backup from "./pages/Backup";
 import Receivables from "./pages/Receivables";
 import Returns from "./pages/Returns";
+import Visits from "./pages/Visits";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
